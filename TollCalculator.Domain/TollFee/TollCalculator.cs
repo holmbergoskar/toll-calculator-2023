@@ -26,7 +26,6 @@ public class TollCalculator
     private int CalculateHourlyMax(IEnumerable<TimeSpan> passes) =>
         passes.Select(_cityTollFee.GetCityTollFeeForDate).Max();
 
-
     private bool IsTollFreeDate(DateTime date)
     {
         var dayAfter = date.AddDays(1);
