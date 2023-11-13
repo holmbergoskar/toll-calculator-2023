@@ -13,52 +13,34 @@ public class TollCalculator
 
     public int GetTollFee(Vehicle vehicle, DateTime[] passes)
     {
-        var differentDayPasses = passes.DistinctBy(x => x.Date).Count() > 1;
-        if (differentDayPasses)
-            throw new DomainException("Cant calculate toll fee for more than 1 day at a time");
-
         if (vehicle.IsTollFree)
             return 0;
         
-        var sortedPasses = passes.OrderBy(x => x).ToList();
-        return sortedPasses switch
+        var dailyPasses = DailyTollPasses.CreateDailyPasses(passes.ToList());
+        return dailyPasses switch
         {
             [] => 0,
-            [var first, ..] when IsTollFreeDate(first) => 0,
-            _ => GetDailyTotalFee(sortedPasses)
+            [_] when IsTollFreeDate(passes[0]) => 0,
+            _ => GetDailyTotalFee(dailyPasses)
         };
     }
 
-    private int GetDailyTotalFee(IEnumerable<DateTime> sortedPasses)
-        => Math.Min(_cityTollFee.MaxDailyFee, GroupByHourlyIntervals(sortedPasses.Select(x => x.TimeOfDay).ToList()).Sum(CalculateHourlyMax));
+    private int GetDailyTotalFee(DailyTollPasses sortedPasses) =>
+        Math.Min(_cityTollFee.MaxDailyFee, sortedPasses.GroupByHourlyIntervals().Sum(CalculateHourlyMax));
 
     private int CalculateHourlyMax(IEnumerable<TimeSpan> passes) =>
         passes.Select(_cityTollFee.GetCityTollFeeForDate).Max();
 
-    private static IEnumerable<IGrouping<TimeSpan, TimeSpan>> GroupByHourlyIntervals(IReadOnlyList<TimeSpan> sortedPasses)
-    {
-        var oneHour = new TimeSpan(1, 0, 0);
-        var slidingWindow = sortedPasses[0];
-        return sortedPasses.GroupBy(x =>
-        {
-            if (x <= slidingWindow.Add(oneHour))
-                return slidingWindow;
-            
-            slidingWindow = x;
-            return x;
-        }).ToList();
-    }
 
     private bool IsTollFreeDate(DateTime date)
     {
         var dayAfter = date.AddDays(1);
 
         var isJuly = date.Month is 7;
-        var isSunday = date.DayOfWeek is DayOfWeek.Sunday;
         var isRedDay = IsRedDay(date, _cityTollFee.Country);
         var dayAfterIsRedDay = IsRedDay(dayAfter, _cityTollFee.Country);
 
-        return isJuly || isSunday || isRedDay || dayAfterIsRedDay;
+        return isJuly || isRedDay || dayAfterIsRedDay;
     }
 
     private bool IsRedDay(DateTime date, Country country)
