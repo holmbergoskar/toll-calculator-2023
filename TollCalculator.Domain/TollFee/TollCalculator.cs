@@ -63,7 +63,7 @@ public class TollCalculator
 
     private bool IsRedDay(DateTime date, Country country)
     {
-        var holidays = _getPublicHolidays.GetPublicHolidays(date.Year, country);
+        var holidays = _getPublicHolidays.Get(date.Year, country);
         return date.DayOfWeek is DayOfWeek.Sunday || holidays.Contains(date);
     }
 }
