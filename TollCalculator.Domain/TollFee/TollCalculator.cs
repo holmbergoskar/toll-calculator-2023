@@ -13,20 +13,15 @@ public class TollCalculator
 
     public int GetTollFee(Vehicle vehicle, DateTime[] passes)
     {
-        if (vehicle.IsTollFree)
-            return 0;
-        
         var dailyPasses = DailyTollPasses.CreateDailyPasses(passes.ToList());
-        return dailyPasses switch
-        {
-            [] => 0,
-            [_] when IsTollFreeDate(passes[0]) => 0,
-            _ => GetDailyTotalFee(dailyPasses)
-        };
+        if (vehicle.IsTollFree || dailyPasses.NoPasses || IsTollFreeDate(passes[0]))
+            return 0;
+
+        return GetDailyTotalFee(dailyPasses);
     }
 
-    private int GetDailyTotalFee(DailyTollPasses sortedPasses) =>
-        Math.Min(_cityTollFee.MaxDailyFee, sortedPasses.GroupByHourlyIntervals().Sum(CalculateHourlyMax));
+    private int GetDailyTotalFee(DailyTollPasses dailyTollPasses) =>
+        Math.Min(_cityTollFee.MaxDailyFee, dailyTollPasses.GroupByHourlyIntervals().Sum(CalculateHourlyMax));
 
     private int CalculateHourlyMax(IEnumerable<TimeSpan> passes) =>
         passes.Select(_cityTollFee.GetCityTollFeeForDate).Max();

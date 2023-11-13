@@ -15,6 +15,8 @@ public class DailyTollPasses : List<TimeSpan>
 
         return new DailyTollPasses(allPasses.Select(x => x.TimeOfDay));
     }
+
+    public bool NoPasses => Count == 0;
     
     public IEnumerable<IGrouping<TimeSpan, TimeSpan>> GroupByHourlyIntervals()
     {
