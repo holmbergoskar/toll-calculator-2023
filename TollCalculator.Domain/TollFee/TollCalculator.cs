@@ -51,18 +51,14 @@ public class TollCalculator
 
     private bool IsTollFreeDate(DateTime date)
     {
-        var dayAfter = date.Date.AddDays(1);
+        var dayAfter = date.AddDays(1);
 
-        if (date.Month is 7)
-            return true;
-        
-        if (date.DayOfWeek is DayOfWeek.Sunday)
-            return true;
+        var isJuly = date.Month is 7;
+        var isSunday = date.DayOfWeek is DayOfWeek.Sunday;
+        var isRedDay = IsRedDay(date, _cityTollFee.Country);
+        var dayAfterIsRedDay = IsRedDay(dayAfter, _cityTollFee.Country);
 
-        if (IsRedDay(date.Date, _cityTollFee.Country) || IsRedDay(dayAfter, _cityTollFee.Country))
-            return true;
-
-        return false;
+        return isJuly || isSunday || isRedDay || dayAfterIsRedDay;
     }
 
     private bool IsRedDay(DateTime date, Country country)
