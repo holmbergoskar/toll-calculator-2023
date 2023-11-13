@@ -2,7 +2,7 @@
 
 public class DailyTollPasses : List<TimeSpan>
 {
-    public DailyTollPasses(IEnumerable<TimeSpan> allPasses)
+    private DailyTollPasses(IEnumerable<TimeSpan> allPasses)
     {
         AddRange(allPasses.Order());
     }
